@@ -133,7 +133,14 @@ async function runAssistant(interval) {
 
       console.log("Submitting function output back to the Assistant...");
       console.log(`Tool Outputs: ${JSON.stringify(tool_outputs)}`);
-      openai.beta.threads.runs.submitToolOutputs(thread.id, run.id, JSON.stringify(tool_outputs));
+      openai.beta.threads.runs.submitToolOutputs(
+        thread.id, 
+        run.id, 
+        {
+          tool_outputs: tool_outputs
+        }
+      );
+      setTimeout(() => runAssistant(interval), interval);
       break;
   
     default:
