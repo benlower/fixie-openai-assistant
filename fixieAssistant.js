@@ -51,7 +51,7 @@ const FIXIE_CORPUS_ID = "437594d6-ae69-4e54-abea-c58ab2be80ec";
 // 2.a Function to call Fixie Corpus
 //-------------------------------------------//
 async function query_Fixie_Corpus(query) {
-  const queryResult = await fixieClient.queryCorpus({ corpusId: FIXIE_CORPUS_ID, query: query });
+  const queryResult = await fixieClient.queryCorpus({ corpusId: FIXIE_CORPUS_ID, query: query, maxChunks: 5 });
 
   return queryResult;
   // return result;
@@ -75,6 +75,13 @@ async function query_Fixie_Corpus(query) {
   // return response.text();
 }
 
+async function processFixieChunks(results) {
+  const completeResults = "";
+  for (const result of results) {
+    completeResults += result.chunkContent;
+  }
+  return completeResults;
+}
 
 //-------------------------------------------//
 // 3. Create the Assistant
@@ -127,12 +134,12 @@ async function runAssistant(interval) {
 
     case 'requires_action':
       console.log("Need to call a function...");
-      const requiredActions = runStatus.required_action.submit_tool_outputs;
       const tool_outputs = [];
+      const requiredActions = runStatus.required_action.submit_tool_outputs;
+      console.log(`Required Actions: ${JSON.stringify(requiredActions)}`);
 
-      console.log(requiredActions);
-
-      requiredActions["tool_calls"].forEach((action) => {
+      // Make sure the closure is async or else we will send the tool outputs before they are all processed
+      await Promise.all(requiredActions["tool_calls"].map(async (action) => {
         const functionName = action["function"]["name"];
         const functionArgs = action["function"]["arguments"];
         console.log(`Function Name: ${functionName}`);
@@ -142,14 +149,35 @@ async function runAssistant(interval) {
         if (functionName == "query_Fixie_Corpus") {
           const query = JSON.parse(functionArgs)["query"];
           const output = await query_Fixie_Corpus(query);
+          const processedOutput = await processFixieChunks(output);
           tool_outputs.push({
             "tool_call_id": action["id"],
-            "output": output
+            "output": JSON.stringify(processedOutput)
           });
         } else {
           throw new Error(`Unknown function: ${functionName}`);
         }
-      });
+      }));
+
+
+      // requiredActions["tool_calls"].forEach((action) => {
+      //   const functionName = action["function"]["name"];
+      //   const functionArgs = action["function"]["arguments"];
+      //   console.log(`Function Name: ${functionName}`);
+      //   console.log(`Arguments: ${functionArgs}`);
+
+      //   // Make sure it's the right function for Fixie Corpus service
+      //   if (functionName == "query_Fixie_Corpus") {
+      //     const query = JSON.parse(functionArgs)["query"];
+      //     const output = query_Fixie_Corpus(query);
+      //     tool_outputs.push({
+      //       "tool_call_id": action["id"],
+      //       "output": output
+      //     });
+      //   } else {
+      //     throw new Error(`Unknown function: ${functionName}`);
+      //   }
+      // });
 
       console.log("Submitting function output back to the Assistant...");
       openai.beta.threads.runs.submitToolOutputs(thread.id, run.id, tool_outputs);
