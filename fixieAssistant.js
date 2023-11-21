@@ -54,16 +54,6 @@ async function query_Fixie_Corpus(query) {
   return queryResult;
 }
 
-// async function processFixieChunks(results) {
-//   let completeResults = "";
-//   const content = results.results;
-//   for (let i = 0; i < content.length; i++) {
-//     completeResults += content[i].chunkContent;
-//   } 
-
-//   return completeResults;
-// }
-
 async function processFixieChunks(results) {
   let completeResults = "";
   for (const result of results) {
@@ -82,22 +72,15 @@ const assistant = await openai.beta.assistants.create({
   model: OPENAI_MODEL
 })
 
-
 //-------------------------------------------//
 // 4. Create the Thread
 //-------------------------------------------//
 const thread = await openai.beta.threads.create()
 
-
 //-------------------------------------------//
 // 5. Add Messages to the Thread
 //-------------------------------------------//
 const message = await openai.beta.threads.messages.create(thread.id, USER_MESSAGE);
-
-// const message = await openai.beta.threads.messages.create(thread.id, {
-//   role: 'user',
-//   content: 'What is the Fixie corpus API?',
-// })
 
 //-------------------------------------------//
 // 6. Run Assistant Loop (Polling)
@@ -148,29 +131,9 @@ async function runAssistant(interval) {
         }
       }));
 
-
-      // requiredActions["tool_calls"].forEach((action) => {
-      //   const functionName = action["function"]["name"];
-      //   const functionArgs = action["function"]["arguments"];
-      //   console.log(`Function Name: ${functionName}`);
-      //   console.log(`Arguments: ${functionArgs}`);
-
-      //   // Make sure it's the right function for Fixie Corpus service
-      //   if (functionName == "query_Fixie_Corpus") {
-      //     const query = JSON.parse(functionArgs)["query"];
-      //     const output = query_Fixie_Corpus(query);
-      //     tool_outputs.push({
-      //       "tool_call_id": action["id"],
-      //       "output": output
-      //     });
-      //   } else {
-      //     throw new Error(`Unknown function: ${functionName}`);
-      //   }
-      // });
-
       console.log("Submitting function output back to the Assistant...");
       console.log(`Tool Outputs: ${JSON.stringify(tool_outputs)}`);
-      openai.beta.threads.runs.submitToolOutputs(thread.id, run.id, tool_outputs);
+      openai.beta.threads.runs.submitToolOutputs(thread.id, run.id, JSON.stringify(tool_outputs));
       break;
   
     default:
