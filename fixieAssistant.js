@@ -50,8 +50,8 @@ const FIXIE_CORPUS_ID = "437594d6-ae69-4e54-abea-c58ab2be80ec";
 //-------------------------------------------//
 // 2.a Function to call Fixie Corpus
 //-------------------------------------------//
-function query_Fixie_Corpus(query) {
-  const queryResult = fixieClient.queryCorpus({ corpusId: FIXIE_CORPUS_ID, query: query });
+async function query_Fixie_Corpus(query) {
+  const queryResult = await fixieClient.queryCorpus({ corpusId: FIXIE_CORPUS_ID, query: query });
 
   return queryResult;
   // return result;
@@ -141,7 +141,7 @@ async function runAssistant(interval) {
         // Make sure it's the right function for Fixie Corpus service
         if (functionName == "query_Fixie_Corpus") {
           const query = JSON.parse(functionArgs)["query"];
-          const output = query_Fixie_Corpus(query);
+          const output = await query_Fixie_Corpus(query);
           tool_outputs.push({
             "tool_call_id": action["id"],
             "output": output
