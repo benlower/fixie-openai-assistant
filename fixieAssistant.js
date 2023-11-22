@@ -77,7 +77,6 @@ const run = await openai.beta.threads.runs.create(thread.id, {
 //-------------------------------------------//
 // 4. Run the Assistant Loop (via Polling)
 //-------------------------------------------//
-
 async function runAssistant(interval) {
   const runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);  // get the run status
   if(DEBUG_MESSAGES) {
