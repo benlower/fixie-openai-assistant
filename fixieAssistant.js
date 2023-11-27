@@ -37,7 +37,7 @@ const QUERY_FIXIE_CORPUS = {
 };
 
 const TOOLS = [{ "type": "function", "function": QUERY_FIXIE_CORPUS }];
-const USER_MESSAGE = { role: "user", content: "How does the Corpus API work?"};
+const USER_MESSAGE = { role: "user", content: "What does Fixie.ai do?"};
 
 //-------------------------------------------//
 // 2. Function to call the Fixie Corpus API
